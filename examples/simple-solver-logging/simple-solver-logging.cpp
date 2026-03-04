@@ -31,11 +31,13 @@ void print_vector(const std::string& name,
 
 int main(int argc, char* argv[])
 {
+    SimpleLogger logger;
+    logger.log("Starte Setup", "Setup");
+
     // Some shortcuts
     using ValueType = double;
     using RealValueType = gko::remove_complex<ValueType>;
     using IndexType = int;
-
     using vec = gko::matrix::Dense<ValueType>;
     using real_vec = gko::matrix::Dense<RealValueType>;
     using mtx = gko::matrix::Csr<ValueType, IndexType>;
@@ -103,7 +105,8 @@ int main(int argc, char* argv[])
             .with_reduction_factor(reduction_factor)
             .on(exec);
     residual_criterion->add_logger(stream_logger);
-
+    logger.log("Setup complete", "Setup");
+   
     // Generate solver
     auto solver_gen =
         cg::build()
@@ -136,7 +139,7 @@ int main(int argc, char* argv[])
                                  gko::log::Logger::iteration_complete_mask);
     exec->add_logger(record_logger);
     solver->add_logger(record_logger);
-
+    logger.log("Start Solver", "solving");
     // Solve system
     solver->apply(b, x);
 
@@ -146,6 +149,7 @@ int main(int argc, char* argv[])
         record_logger->get().iteration_completed.back()->residual.get();
     auto residual_d = gko::as<vec>(residual);
     print_vector("Residual", residual_d);
+    logger.log("Solving complete", "solving");
 
     // Print solution
     std::cout << "Solution (x):\n";
